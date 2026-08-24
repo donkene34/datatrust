@@ -1,0 +1,101 @@
+Patient_ID,Age,Gender,Blood_Pressure,Cholesterol,BMI,Smoker,Diagnosis,Admission_Date,Notes
+P1000,55.0,FEMALE,120.0,,35.4,Yes,Heart Disease,2023-12-27,
+P1001,65.0,Male,150.0,180.0,27.8,nan,None,2023-01-01,
+P1002,45.0,Male,120.0,220.0,22.5,No,nan,2023-12-14,
+P1003,65.0,Male,,180.0,35.4,No,nan,2023-07-09,
+P1004,65.0,Male,120.0,300.0,40.1,nan,None,2023-07-10,Follow-up required
+P1005,35.0,Female,130.0,200.0,35.4,N,Heart Disease,2023-11-08,Follow-up required
+P1006,45.0,MALE,150.0,,22.5,No,None,2023-04-27,N/A
+P1007,45.0,MALE,150.0,200.0,,N,nan,2023-05-14,Checkup due
+P1008,45.0,Male,,200.0,,No,Diabetes,2023-02-27,
+P1009,65.0,MALE,130.0,,35.4,No,Diabetes,2023-02-13,Checkup due
+P1010,55.0,MALE,140.0,220.0,30.0,Y,None,2023-06-22,Checkup due
+P1011,45.0,Male,120.0,300.0,35.4,No,nan,2023-06-09,N/A
+P1012,,MALE,160.0,180.0,27.8,Yes,Diabetes,2023-06-22,
+P1013,65.0,FEMALE,120.0,250.0,27.8,nan,nan,2023-11-13,
+P1014,35.0,male,120.0,180.0,,nan,None,2023-10-30,Pending
+P1015,55.0,male,140.0,250.0,30.0,N,Diabetes,2023-05-29,Checkup due
+P1016,,Male,120.0,180.0,22.5,No,nan,2023-03-21,Checkup due
+P1017,,Female,130.0,,27.8,Yes,Diabetes,2023-08-01,Follow-up required
+P1018,35.0,Male,130.0,300.0,,N,None,2023-07-22,Pending
+P1019,55.0,Female,150.0,250.0,40.1,Y,nan,2023-09-09,Follow-up required
+P1020,65.0,male,,220.0,,N,Diabetes,2023-08-17,Follow-up required
+P1021,25.0,Male,160.0,180.0,27.8,N,None,2023-06-13,Follow-up required
+P1022,55.0,nan,120.0,180.0,27.8,No,Diabetes,2023-08-15,N/A
+P1023,35.0,FEMALE,120.0,250.0,,Y,Diabetes,2023-05-27,N/A
+P1024,,MALE,140.0,220.0,22.5,N,Heart Disease,2023-01-20,Follow-up required
+P1025,65.0,Female,,220.0,35.4,Yes,Heart Disease,2023-02-16,Pending
+P1026,55.0,nan,130.0,,27.8,Yes,None,2023-08-21,Checkup due
+P1027,25.0,MALE,160.0,,,nan,Heart Disease,2023-11-01,Pending
+P1028,25.0,MALE,150.0,,,Y,None,2023-01-14,
+P1029,45.0,Male,130.0,,30.0,Y,Heart Disease,2023-05-23,N/A
+P1030,45.0,MALE,,,35.4,nan,Diabetes,2023-01-01,Checkup due
+P1031,35.0,FEMALE,150.0,,40.1,N,None,2023-02-23,Checkup due
+P1032,55.0,nan,140.0,300.0,22.5,Y,None,2023-09-16,
+P1033,55.0,MALE,140.0,220.0,40.1,Yes,Diabetes,2023-05-24,
+P1034,,Male,120.0,,35.4,Yes,None,2023-01-12,Follow-up required
+P1035,,FEMALE,,220.0,35.4,No,None,2023-11-26,N/A
+P1036,,male,160.0,220.0,35.4,Y,Heart Disease,2023-08-12,N/A
+P1037,45.0,nan,150.0,200.0,40.1,N,None,2023-09-29,Pending
+P1038,55.0,MALE,130.0,300.0,35.4,nan,nan,2023-12-24,Follow-up required
+P1039,55.0,Male,,,,nan,Diabetes,2023-06-05,Follow-up required
+P1040,25.0,male,,180.0,40.1,N,Heart Disease,2023-01-08,Follow-up required
+P1041,45.0,male,140.0,250.0,35.4,No,Heart Disease,2023-05-02,Follow-up required
+P1042,65.0,Female,120.0,180.0,,nan,nan,2023-12-14,N/A
+P1043,45.0,FEMALE,120.0,300.0,30.0,Y,Diabetes,2023-06-13,N/A
+P1044,65.0,MALE,150.0,250.0,35.4,No,Diabetes,2023-03-31,Follow-up required
+P1045,25.0,Male,140.0,300.0,40.1,Y,Heart Disease,2023-05-16,Pending
+P1046,35.0,Female,,220.0,27.8,Yes,None,2023-07-05,Checkup due
+P1047,55.0,FEMALE,160.0,250.0,35.4,No,Heart Disease,2023-11-12,Checkup due
+P1048,25.0,Female,140.0,220.0,27.8,nan,Diabetes,2023-06-27,Pending
+P1049,55.0,nan,150.0,180.0,,No,nan,2023-01-28,Follow-up required
+P1050,,FEMALE,150.0,180.0,30.0,No,Heart Disease,2023-08-08,N/A
+P1051,35.0,FEMALE,140.0,250.0,22.5,No,Diabetes,2023-12-23,Checkup due
+P1052,35.0,MALE,150.0,250.0,30.0,No,Heart Disease,2023-02-10,
+P1053,25.0,FEMALE,140.0,,35.4,Y,None,2023-08-16,
+P1054,35.0,Female,130.0,300.0,27.8,Yes,Heart Disease,2023-07-11,Pending
+P1055,65.0,FEMALE,140.0,,27.8,N,Heart Disease,2023-05-25,Follow-up required
+P1056,35.0,MALE,140.0,300.0,40.1,No,Diabetes,2023-07-20,Checkup due
+P1057,55.0,MALE,150.0,,27.8,nan,Diabetes,2023-07-31,Follow-up required
+P1058,55.0,nan,150.0,220.0,40.1,No,Diabetes,2023-08-08,Checkup due
+P1059,55.0,Female,120.0,250.0,,nan,Heart Disease,2023-08-28,Pending
+P1060,55.0,male,120.0,180.0,22.5,Y,None,2023-02-15,Pending
+P1061,65.0,male,130.0,300.0,35.4,nan,nan,2023-02-04,
+P1062,45.0,FEMALE,120.0,300.0,40.1,N,nan,2023-09-10,Follow-up required
+P1063,,nan,140.0,180.0,22.5,Yes,Diabetes,2023-03-23,
+P1064,25.0,Male,150.0,,27.8,nan,Diabetes,2023-09-13,Follow-up required
+P1065,55.0,FEMALE,120.0,300.0,27.8,nan,Heart Disease,2023-07-16,
+P1066,35.0,nan,120.0,220.0,22.5,Yes,nan,2023-10-30,N/A
+P1067,55.0,Female,130.0,250.0,27.8,N,Diabetes,2023-01-10,N/A
+P1068,35.0,Female,,180.0,,No,None,2023-11-08,N/A
+P1069,,Female,130.0,250.0,,nan,None,2023-10-13,N/A
+P1070,,Female,140.0,300.0,22.5,Yes,Diabetes,2023-08-30,Checkup due
+P1071,,Female,150.0,300.0,40.1,Y,Diabetes,2023-09-08,N/A
+P1072,35.0,nan,130.0,180.0,40.1,Yes,nan,2023-12-31,Pending
+P1073,55.0,nan,120.0,220.0,22.5,Y,nan,2023-01-05,Pending
+P1074,,MALE,150.0,200.0,40.1,N,Heart Disease,2023-04-29,Checkup due
+P1075,65.0,male,150.0,180.0,40.1,No,nan,2023-10-16,N/A
+P1076,35.0,Female,120.0,200.0,,Yes,None,2023-03-06,N/A
+P1077,35.0,Male,130.0,,40.1,nan,None,2023-05-26,N/A
+P1078,55.0,nan,120.0,200.0,30.0,N,Diabetes,2023-08-12,
+P1079,35.0,Male,,220.0,35.4,Yes,nan,2023-08-27,Follow-up required
+P1080,35.0,Male,150.0,,27.8,nan,Heart Disease,2023-06-26,
+P1081,,Male,160.0,200.0,30.0,Yes,None,2023-09-24,Follow-up required
+P1082,55.0,MALE,160.0,,40.1,Y,None,2023-12-07,N/A
+P1083,,nan,140.0,200.0,,Yes,Heart Disease,2023-10-09,N/A
+P1084,,Male,120.0,220.0,22.5,Yes,Heart Disease,2023-03-04,
+P1085,55.0,Female,120.0,200.0,40.1,Yes,None,2023-08-05,
+P1086,25.0,FEMALE,140.0,200.0,,N,None,2023-12-08,Follow-up required
+P1087,,Male,140.0,200.0,35.4,Yes,Heart Disease,2023-11-11,Pending
+P1088,65.0,MALE,140.0,180.0,40.1,nan,None,2023-10-10,Follow-up required
+P1089,65.0,nan,150.0,180.0,22.5,Y,Diabetes,2023-06-26,
+P1090,35.0,MALE,,180.0,,Y,Diabetes,2023-04-08,
+P1091,65.0,Male,120.0,220.0,,Yes,Heart Disease,2023-04-15,Checkup due
+P1092,35.0,nan,150.0,,,N,nan,2023-04-09,
+P1093,25.0,FEMALE,140.0,300.0,35.4,N,Heart Disease,2023-11-07,Checkup due
+P1094,55.0,Male,120.0,200.0,40.1,nan,Heart Disease,2023-01-06,Pending
+P1095,55.0,MALE,150.0,200.0,35.4,Yes,nan,2023-07-16,Follow-up required
+P1096,55.0,male,,220.0,27.8,Y,nan,2023-12-17,Follow-up required
+P1097,65.0,Female,150.0,200.0,27.8,N,nan,2023-05-13,Checkup due
+P1098,25.0,MALE,,180.0,40.1,Yes,Diabetes,2023-12-24,Follow-up required
+P1099,65.0,nan,140.0,300.0,35.4,N,None,2023-09-16,
