@@ -209,3 +209,67 @@ def rapports_intelligence(rapports_intelligence_bruts):
     valides = {nom: r for nom, r in rapports_intelligence_bruts.items() if not isinstance(r, Exception)}
     assert valides, "generer_rapport_intelligence() a échoué sur tous les datasets"
     return valides
+
+
+# ============================================================
+# Fixtures Milestone #3 (confiance) — CHAQUE certification envoie une vraie
+# transaction Sepolia (coûte du vrai ETH de test). On certifie chaque dataset
+# EXACTEMENT UNE FOIS par session (fixture session-scoped) et on réutilise ce
+# résultat pour tous les critères (4, 5, 6, 7, 8 partiel, 9) plutôt que de
+# répéter des transactions. datasetId s'incrémente sur le contrat entre les
+# runs : on ne suppose jamais un id fixe, on utilise toujours celui retourné
+# par l'appel.
+# ============================================================
+
+OWNER_ADDRESS_PAR_DEFAUT = None  # résolu depuis le wallet plateforme lui-même (voir fixture)
+OWNER_ADDRESS_DISTINCT_TEST = "0x000000000000000000000000000000000000dEaD"
+# Adresse "burn" bien connue, volontairement DIFFÉRENTE du wallet plateforme,
+# utilisée pour au moins un dataset afin de vérifier que 'owner' (déclaré) et
+# 'certifier' (msg.sender) sont bien deux champs distincts on-chain (ADR-10).
+
+
+@pytest.fixture(scope="session")
+def adresse_wallet_plateforme():
+    """Adresse PUBLIQUE dérivée de WALLET_PRIVATE_KEY (jamais la clé elle-même)."""
+    import confiance  # déclenche le chargement de .env
+    from eth_account import Account
+
+    cle = os.environ.get("WALLET_PRIVATE_KEY")
+    assert cle, "WALLET_PRIVATE_KEY absente de l'environnement"
+    return Account.from_key(cle).address
+
+
+@pytest.fixture(scope="session")
+def certificats_bruts(dataset_paths, adresse_wallet_plateforme):
+    """Certifie chaque dataset UNE SEULE FOIS (vraie transaction Sepolia par
+    dataset). Un dataset (bank_transactions) utilise une adresse owner
+    délibérément différente du wallet plateforme pour tester ADR-10."""
+    import confiance
+
+    resultats = {}
+    for nom, chemin in dataset_paths.items():
+        owner = (
+            OWNER_ADDRESS_DISTINCT_TEST
+            if nom == "bank_transactions_data_2.csv"
+            else adresse_wallet_plateforme
+        )
+        try:
+            resultats[nom] = confiance.certifier_dataset(str(chemin), owner_address=owner, version=1)
+        except Exception as exc:  # noqa: BLE001
+            resultats[nom] = exc
+    return resultats
+
+
+@pytest.fixture(scope="session")
+def certificats(certificats_bruts):
+    """Sous-ensemble des certifications ayant réussi (pas d'exception Python levée
+    ET pas de {"erreur": ...} — ADR-6 : jamais de certificat partiel)."""
+    valides = {}
+    for nom, r in certificats_bruts.items():
+        if isinstance(r, Exception):
+            continue
+        if isinstance(r, dict) and "erreur" in r:
+            continue
+        valides[nom] = r
+    assert valides, "Aucune certification n'a réussi sur les 5 datasets (voir critère 9 pour le détail par dataset)"
+    return valides

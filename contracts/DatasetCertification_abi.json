@@ -1,0 +1,211 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "walletPlateforme",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "datasetId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "certifier",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "datasetHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "ipfsCID",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "DatasetCertified",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "authorizedCertifier",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "ownerAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "datasetHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "ipfsCID",
+        "type": "string"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "metadataHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint16",
+        "name": "version",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "qualityScore",
+        "type": "uint16"
+      }
+    ],
+    "name": "certifyDataset",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "datasetId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "datasetId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getCertificate",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "certifier",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "datasetHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "ipfsCID",
+            "type": "string"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "metadataHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint16",
+            "name": "version",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "qualityScore",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct DatasetCertification.DatasetCertificate",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalCertificates",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "datasetId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "recomputedHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "verifyHash",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
