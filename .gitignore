@@ -153,3 +153,12 @@ __pycache__/
 # au Milestone #3) : le fichier réapparaissait comme "Untracked" à chaque git status
 # depuis le Milestone #1 malgré cette ligne.
 dataset/household_power_consumption.txt
+
+# API (Milestone #4) : état d'exécution local, pas du code — le fichier SQLite de suivi
+# des jobs (ADR-3) et les fichiers temporaires uploadés (ADR-9) ne doivent jamais être
+# versionnés.
+backend/api/jobs.db
+backend/api/jobs.db-journal
+backend/api/jobs.db-wal
+backend/api/jobs.db-shm
+backend/api/uploads_temp/

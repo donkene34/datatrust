@@ -32,6 +32,7 @@ import time
 
 from dotenv import load_dotenv
 from web3 import Web3
+from web3.exceptions import TransactionNotFound
 
 load_dotenv()  # même mécanisme que client_llm.py et stockage_ipfs.py — n'écrase jamais une variable déjà définie
 
@@ -223,3 +224,75 @@ def verifier_hash(dataset_id, hash_recalcule_hex):
         return {"erreur": f"Vérification du hash impossible : {type(exc).__name__}: {exc}"}
 
     return {"identique": identique}
+
+
+def obtenir_recu_transaction(hash_transaction):
+    """
+    Fonction additive (Milestone #4, ADR-11) : consulte directement Sepolia
+    pour connaître l'état réel d'une transaction de certification déjà
+    envoyée, sans jamais se fier à un état local — utile après un
+    redémarrage du serveur API pour retrouver une transaction envoyée juste
+    avant un crash (ADR-10). Lecture seule (aucune transaction envoyée) ;
+    n'altère aucune fonction existante de ce module ni leur signature.
+
+    - hash_transaction : le hash tel que retourné par certifier() dans son
+      champ "hash_transaction" (chaîne hexadécimale "0x...").
+
+    Retourne un dict décrivant l'état constaté — sans décider de la logique
+    de réconciliation, qui appartient au JobManager (ADR-10) :
+    - {"statut": "confirmee", "dataset_id": ..., "gas_utilise": ...,
+       "cout_wei": ..., "cout_eth": ...} si la transaction est minée et a
+      réussi (receipt.status == 1) ; dataset_id extrait de l'événement
+      DatasetCertified, comme dans certifier().
+    - {"statut": "echouee"} si la transaction est minée mais a échoué
+      on-chain (receipt.status == 0, revert). Ce cas n'est pas explicitement
+      couvert par le texte de l'ADR-10 (qui ne distingue que "confirmée avec
+      succès" et "introuvable/en attente") : il existe pourtant réellement
+      (transaction minée mais revert) et est remonté tel quel plutôt que
+      fondu dans "introuvable" — à traiter explicitement au moment
+      d'écrire le JobManager (tâche suivante).
+    - {"statut": "introuvable"} si aucun reçu n'existe encore pour ce hash
+      (transaction toujours en attente de minage, ou jamais parvenue au
+      réseau) — c'est le cas normal juste après un crash pour une
+      transaction envoyée mais pas encore confirmée.
+    - {"erreur": "..."} en cas de problème de configuration ou de connexion
+      (même contrat que le reste du module, ADR-6) — jamais la clé privée
+      dans le message.
+    """
+    w3, _compte, contrat, erreur_config = _construire_client()
+    if erreur_config:
+        return {"erreur": erreur_config}
+
+    try:
+        recu = w3.eth.get_transaction_receipt(hash_transaction)
+    except TransactionNotFound:
+        return {"statut": "introuvable"}
+    except Exception as exc:
+        # capture large pour la même raison que le reste du module : le type
+        # exact d'une erreur de lecture varie selon le fournisseur RPC (ADR-6)
+        return {"erreur": f"Lecture du reçu de transaction impossible : {type(exc).__name__}: {exc}"}
+
+    if recu is None:
+        return {"statut": "introuvable"}
+
+    if recu.status != 1:
+        return {"statut": "echouee"}
+
+    evenements = contrat.events.DatasetCertified().process_receipt(recu)
+    if not evenements:
+        # minée avec succès (status == 1) mais l'événement attendu est absent — ne devrait pas
+        # arriver pour une transaction envoyée par certifier() vers ce contrat ; remonté
+        # explicitement plutôt que masqué en "confirmee" avec un dataset_id manquant
+        return {"erreur": "Transaction confirmée mais événement DatasetCertified introuvable dans le reçu."}
+    dataset_id = evenements[0]["args"]["datasetId"]
+
+    prix_gas_effectif = recu.get("effectiveGasPrice", w3.eth.gas_price)
+    cout_wei = recu.gasUsed * prix_gas_effectif
+
+    return {
+        "statut": "confirmee",
+        "dataset_id": dataset_id,
+        "gas_utilise": recu.gasUsed,
+        "cout_wei": cout_wei,
+        "cout_eth": float(w3.from_wei(cout_wei, "ether")),
+    }

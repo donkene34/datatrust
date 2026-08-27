@@ -1,7 +1,9 @@
 # Milestone #3 — Phase 3 : Confiance
 ## Spécification V2 — intègre les 4 ajustements demandés par DILANE
 
-**Statut :** V2 — DILANE a validé l'architecture générale de la V1 sans réserve ("le flux est cohérent... c'est exactement le rôle que nous voulons donner à la blockchain") et tranché les 4 points d'arbitrage, avec une correction importante détectée en cours de relecture : la distinction `owner` / `certifier`, qui n'était pas dans la V1. Cette V2 intègre les 4 ajustements ciblés demandés, sans toucher au reste de l'architecture.
+**Statut : MILESTONE #3 CLÔTURÉ.** V2 implémentée, testée en boîte noire par Claude Code (9 critères, transactions Sepolia réelles), validée par DILANE avec une limite connue explicitement acceptée (voir "Résultats des tests" ci-dessous), code livré, commité et poussé sur GitHub.
+
+**Statut V2 (historique) :** DILANE a validé l'architecture générale de la V1 sans réserve ("le flux est cohérent... c'est exactement le rôle que nous voulons donner à la blockchain") et tranché les 4 points d'arbitrage, avec une correction importante détectée en cours de relecture : la distinction `owner` / `certifier`, qui n'était pas dans la V1. Cette V2 intègre les 4 ajustements ciblés demandés, sans toucher au reste de l'architecture.
 
 **Historique :** V1 proposée par Claude (architecture + 4 points d'arbitrage volontairement laissés ouverts) → DILANE valide l'architecture, tranche les 4 points, et identifie un problème que ni la V1 ni les points d'arbitrage n'avaient couvert (le wallet plateforme comme `msg.sender` unique aurait fait de la plateforme le propriétaire on-chain de tous les datasets, contredisant l'objectif de provenance) → cette V2 corrige ce point avec un modèle `owner`/`certifier` distinct.
 
@@ -138,12 +140,37 @@ Les 4 points laissés ouverts dans la V1 ont été tranchés par DILANE (relayé
 8. `metadataHash` est reproductible : recalculer le hash à partir des mêmes métadonnées (même objet Python, appels séparés) donne exactement le même résultat, conformément à la sérialisation canonique définie en ADR-11
 9. Mesure réelle de performance (jamais supposée, comme au Milestone #2) sur chacun des 5 datasets, avec un tableau détaillé : Dataset, Taille, Temps hash, Temps upload IPFS, CID obtenu, Temps transaction (certification on-chain), Gas utilisé, Coût estimé (en ETH et en équivalent fiat au taux du jour du test), Temps total de bout en bout — une attention particulière est portée au dataset énergie (~133 Mo), dont le coût/temps d'upload IPFS n'est pas à supposer
 
+## Résultats des tests (Claude Code, boîte noire)
+
+Batterie complète exécutée contre les 9 critères d'acceptation, avec de vraies transactions sur Sepolia (contrat déployé à `0xb475ddb4b4ef1ff3868b6f3384d784669abfb0ab`, vérifié sur Etherscan).
+
+| # | Critère | Résultat |
+|---|---|---|
+| 1 | Hash SHA-256 identique à `hashlib` indépendant (5 datasets) | ✅ PASS |
+| 2 | Upload/download IPFS + hash identique | ✅ PASS |
+| 3 | Contrat déployé + vérifié sur Etherscan Sepolia | ✅ PASS |
+| 4 | `certifyDataset`/`getCertificate` : `owner`/`certifier`/`timestamp` corrects (ADR-10) | ✅ PASS |
+| 5 | `verifyHash` : `true` sur hash correct, `false` sur hash altéré | ✅ PASS |
+| 6 | Aucune clé privée/JWT dans sortie, logs, ou fichiers commités | ✅ PASS |
+| 7 | Pipeline bout-en-bout sur ≥3/5 datasets | ✅ PASS (4/5 réussis) |
+| 8 | `metadataHash` reproductible, indépendant de l'ordre des clés (ADR-11) | ✅ PASS |
+| 9 | Mesures de performance réelles sur les 5 datasets | 🟡 PARTIEL — voir ci-dessous |
+
+**Sur le critère #9 — précision plutôt qu'arrondi optimiste (même rigueur qu'au Milestone #2) :** mesures complètes et réelles obtenues sur 4/5 datasets. Le 5ᵉ (dataset énergie, ~127 Mo) échoue de façon reproductible à l'upload IPFS (`ConnectionError`, testé à 3 reprises — 2× avec un timeout de 120s, échec à ~140s, puis 1× avec un timeout remonté à 600s, échec à ~623s). Le fait que le délai d'échec suive à peu près le timeout réglé, sans jamais aboutir, indique que ce n'est probablement pas qu'une question de patience — mais la cause exacte (limite réseau, comportement de l'upload monolithique face à un gros fichier, ou une limite Pinata non documentée clairement en HTTP) n'a pas été isolée avec certitude.
+
+**Décision DILANE :** accepter cette limite telle quelle plutôt que d'investiguer davantage (ex. migration vers l'upload repris/par blocs TUS que Pinata recommande au-delà de 100 Mo) — le dataset énergie original (`household_power_consumption.txt`, ~127 Mo) reste tel quel dans le dépôt, sans échantillonnage ni remplacement. Cette limite (certification fiable jusqu'à ~30-50 Mo en l'état, pas encore validée au-delà) est à documenter explicitement dans le rapport technique final (section limites et perspectives) plutôt que passée sous silence — c'est un résultat mesuré, pas une supposition, ce qui est exactement l'esprit du projet.
+
+**Trouvaille annexe pendant la clôture :** un bug de longue date dans `.gitignore` (une ligne contenant un espace entre chaque caractère, cassant le motif d'exclusion du dataset énergie depuis le Milestone #1) a été identifié et corrigé, avec l'ajout des exclusions Python (`__pycache__/`, `*.pyc`) qui manquaient totalement du fichier généré initialement pour un projet Node.js.
+
 ## Responsable exécution
 
 - Spécification V1 : Claude (architecture + 4 points d'arbitrage volontairement laissés ouverts)
 - V1 relayée par DILANE à ChatGPT pour arbitrage, puis validée par DILANE avec une correction identifiée en relecture (distinction `owner`/`certifier`, absente de la V1 et non couverte par les 4 points d'arbitrage)
-- Spécification V2 (ce document) : Claude — intègre les 4 ajustements demandés par DILANE
-- Prochaine étape : GO ferme de DILANE sur cette V2
-- Implémentation : Claude (après GO ferme de DILANE)
-- Tests contre les critères ci-dessus : Claude Code (boîte noire, sans lecture du code source d'implémentation)
-- Validation finale : DILANE
+- Spécification V2 : Claude — intègre les 4 ajustements demandés par DILANE
+- Implémentation (`backend/confiance/` + `contracts/DatasetCertification.sol`) : Claude, avec tests locaux (chaîne EVM en mémoire) avant livraison
+- Déploiement et vérification Etherscan sur Sepolia : DILANE (guidé par Claude)
+- Tests contre les 9 critères d'acceptation : Claude Code (boîte noire, transactions Sepolia réelles)
+- Validation finale et arbitrage sur la limite du critère #9 : DILANE — accepté en l'état, à documenter dans le rapport final
+- Code livré, commité et poussé sur GitHub
+
+**MILESTONE #3 CLÔTURÉ.**

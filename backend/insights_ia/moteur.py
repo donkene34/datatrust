@@ -53,7 +53,7 @@ def _memoire_maximale_mo():
     return round(octets / (1024 * 1024), 2)
 
 
-def generer_rapport_intelligence(chemin_fichier, modele_llm=None):
+def generer_rapport_intelligence(chemin_fichier, modele_llm=None, rapport_qualite=None):
     """
     Point d'entrée principal du Milestone #2 : construit le JSON complet
     combinant qualité (Milestone #1, inchangé), anomalies, visualisations
@@ -77,8 +77,25 @@ def generer_rapport_intelligence(chemin_fichier, modele_llm=None):
     Ne lève jamais d'exception à cause d'un échec du LLM (ADR-5) : dans ce
     cas, "insights_ia" contient {"erreur": "..."} et le reste du JSON reste
     complet et correct (critère 7).
+
+    Paramètre rapport_qualite (ajouté au Milestone #4, ADR-12, API) :
+    optionnel, None par défaut — dans ce cas le comportement est strictement
+    identique à celui validé au Milestone #2 (rapport qualité recalculé en
+    interne). Si un rapport déjà calculé par qualite_donnees.generer_rapport()
+    sur ce MÊME fichier est fourni, il est réutilisé tel quel et l'appel
+    interne à generer_rapport() est sauté, pour éviter un recalcul coûteux
+    quand l'appelant (l'API Phase 4a) a déjà ce rapport sous la main. La
+    vérification que ce rapport correspond bien à chemin_fichier est de la
+    responsabilité de l'appelant (l'API vérifie un dataset_hash avant
+    d'appeler cette fonction, voir Milestone #4) — ce module ne le revérifie
+    pas lui-même, il fait confiance à ce qu'on lui fournit, comme le reste
+    du pipeline (voir "jamais le dataset brut" dans invite.py). construire_artefact()
+    continue de relire le fichier séparément dans tous les cas : il construit
+    une structure différente (matrice de features pour les anomalies), pas
+    remplaçable par le rapport qualité.
     """
-    rapport_qualite = generer_rapport(chemin_fichier)
+    if rapport_qualite is None:
+        rapport_qualite = generer_rapport(chemin_fichier)
 
     artefact = construire_artefact(chemin_fichier)
     temps_secondes_artefact = artefact["temps_secondes"]

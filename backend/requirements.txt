@@ -6,3 +6,7 @@ requests>=2.31
 psutil>=5.9
 python-dotenv>=1.0
 web3>=7.0
+pydantic>=2.0
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
