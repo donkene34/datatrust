@@ -86,11 +86,21 @@ def _executer_certification(job_id: str, chemin_fichier: str, owner_address: str
         )
         return
 
+    # Milestone #4.1 : résolution unique, au moment où la certification aboutit, des jobs
+    # qualité/insights partageant le dataset_hash de ce job — figée durablement sur le job de
+    # certification plutôt que recalculée à chaque lecture (voir gestionnaire.resoudre_jobs_lies()
+    # et GET /api/v1/datasets/{dataset_id}, routes/datasets.py).
+    job = gestionnaire.lire_job(job_id)
+    job_qualite_id, job_insights_id = gestionnaire.resoudre_jobs_lies(job.dataset_hash)
+
     gestionnaire.mettre_a_jour_job(
         job_id,
         statut=StatutJob.TERMINE,
         resultat=resultat,
         transaction_hash=resultat["hash_transaction"],
+        dataset_id_onchain=resultat["dataset_id"],
+        job_qualite_id=job_qualite_id,
+        job_insights_id=job_insights_id,
     )
 
 

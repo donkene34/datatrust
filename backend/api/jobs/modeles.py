@@ -92,6 +92,16 @@ class Job(BaseModel):
     dataset_hash: Optional[str] = None
     transaction_hash: Optional[str] = None
 
+    # Milestone #4.1 — uniquement renseignés sur les jobs de type CERTIFICATION, au moment où
+    # le job passe "termine" (voir gestionnaire.py::resoudre_jobs_lies()) : associent
+    # durablement le dataset_id on-chain obtenu à la certification aux jobs qualité/insights
+    # qui l'ont précédé (retrouvés par correspondance sur dataset_hash), pour que
+    # GET /api/v1/datasets/{dataset_id} (Milestone #5, page de détail) puisse les retrouver
+    # sans dépendre du navigateur du client qui a fait le dépôt.
+    dataset_id_onchain: Optional[int] = None
+    job_qualite_id: Optional[str] = None
+    job_insights_id: Optional[str] = None
+
     @field_serializer("cree_le", "mis_a_jour_le")
     def _serialiser_dates(self, valeur: datetime) -> str:
         return _vers_iso8601_z(valeur)
@@ -153,25 +163,62 @@ def nouveau_job(type_job: TypeJob, **champs_internes) -> Job:
 
 NOM_TABLE = "jobs"
 
-SCHEMA_SQL = f"""
+# dataset_id_onchain (Milestone #4.1) : dénormalisée comme dataset_hash/transaction_hash pour
+# permettre une recherche indexée directe par GET /api/v1/datasets/{dataset_id}
+# (JobManager.trouver_job_certification_par_dataset_id()), plutôt qu'un scan de tous les jobs
+# de type certification pour y trouver celui dont resultat.dataset_id correspond.
+#
+# La création de table et celle des index sont deux scripts séparés (plutôt qu'un seul
+# executescript) : sur une base déjà existante créée par une version antérieure du schéma,
+# CREATE TABLE IF NOT EXISTS ne fait rien (la table a déjà les anciennes colonnes) — la
+# migration ci-dessous doit donc ajouter dataset_id_onchain avant que l'index qui la
+# référence soit créé, sous peine de "no such column" sur l'ancienne base.
+SCHEMA_SQL_TABLE = f"""
 CREATE TABLE IF NOT EXISTS {NOM_TABLE} (
     job_id TEXT PRIMARY KEY,
     type TEXT NOT NULL,
     statut TEXT NOT NULL,
     dataset_hash TEXT,
     transaction_hash TEXT,
+    dataset_id_onchain INTEGER,
     cree_le TEXT NOT NULL,
     mis_a_jour_le TEXT NOT NULL,
     donnees_json TEXT NOT NULL
 );
+"""
+
+SCHEMA_SQL_INDEX = f"""
 CREATE INDEX IF NOT EXISTS idx_jobs_statut ON {NOM_TABLE} (statut);
 CREATE INDEX IF NOT EXISTS idx_jobs_dataset_hash ON {NOM_TABLE} (dataset_hash);
+CREATE INDEX IF NOT EXISTS idx_jobs_dataset_id_onchain ON {NOM_TABLE} (dataset_id_onchain);
 """
+
+# Conservé pour compatibilité (import éventuel ailleurs) : table + index d'une base neuve.
+SCHEMA_SQL = SCHEMA_SQL_TABLE + SCHEMA_SQL_INDEX
+
+
+def _migrer_colonnes_manquantes(connexion: sqlite3.Connection) -> None:
+    """
+    Migration légère (Milestone #4.1) : une base créée par une version antérieure du schéma
+    (avant l'introduction de dataset_id_onchain) n'a pas cette colonne — CREATE TABLE IF NOT
+    EXISTS ne la lui ajoute pas rétroactivement. SQLite supporte ALTER TABLE ADD COLUMN pour
+    une colonne nullable sans réécrire la table : sûr à appliquer sur une base déjà en usage.
+    Idempotent (vérifie PRAGMA table_info avant d'agir) — aucun effet sur une base déjà à jour.
+    """
+    colonnes = {ligne[1] for ligne in connexion.execute(f"PRAGMA table_info({NOM_TABLE})")}
+    if "dataset_id_onchain" not in colonnes:
+        connexion.execute(f"ALTER TABLE {NOM_TABLE} ADD COLUMN dataset_id_onchain INTEGER")
 
 
 def initialiser_schema(connexion: sqlite3.Connection) -> None:
-    """Crée la table jobs et ses index si absents. Idempotent (IF NOT EXISTS)."""
-    connexion.executescript(SCHEMA_SQL)
+    """
+    Crée la table jobs si absente, applique la migration légère ci-dessus (colonnes manquantes
+    d'une base pré-existante), puis crée les index — dans cet ordre précis, pour que les index
+    portant sur une colonne migrée ne soient créés qu'une fois cette colonne présente.
+    """
+    connexion.executescript(SCHEMA_SQL_TABLE)
+    _migrer_colonnes_manquantes(connexion)
+    connexion.executescript(SCHEMA_SQL_INDEX)
     connexion.commit()
 
 
@@ -187,6 +234,7 @@ def job_vers_ligne(job: Job) -> dict:
         "statut": job.statut.value,
         "dataset_hash": job.dataset_hash,
         "transaction_hash": job.transaction_hash,
+        "dataset_id_onchain": job.dataset_id_onchain,
         "cree_le": _vers_iso8601_z(job.cree_le),
         "mis_a_jour_le": _vers_iso8601_z(job.mis_a_jour_le),
         "donnees_json": job.model_dump_json(),

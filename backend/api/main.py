@@ -127,8 +127,8 @@ def sante():
     return {"statut": "ok"}
 
 
-# Montage des 4 routers (tâches #6 à #9, toutes terminées) :
-from .routes import certifications, insights
+# Montage des routers : les 4 du Milestone #4 (tâches #6 à #9), plus datasets.py (Milestone #4.1) :
+from .routes import certifications, datasets, insights
 from .routes import jobs as jobs_routes
 from .routes import qualite
 
@@ -136,3 +136,4 @@ app.include_router(qualite.router, prefix="/api/v1")
 app.include_router(jobs_routes.router, prefix="/api/v1")
 app.include_router(insights.router, prefix="/api/v1")
 app.include_router(certifications.router, prefix="/api/v1")
+app.include_router(datasets.router, prefix="/api/v1")

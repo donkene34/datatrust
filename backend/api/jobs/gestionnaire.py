@@ -74,9 +74,9 @@ class JobManager:
             connexion.execute(
                 """
                 INSERT INTO jobs (job_id, type, statut, dataset_hash, transaction_hash,
-                                   cree_le, mis_a_jour_le, donnees_json)
+                                   dataset_id_onchain, cree_le, mis_a_jour_le, donnees_json)
                 VALUES (:job_id, :type, :statut, :dataset_hash, :transaction_hash,
-                        :cree_le, :mis_a_jour_le, :donnees_json)
+                        :dataset_id_onchain, :cree_le, :mis_a_jour_le, :donnees_json)
                 """,
                 ligne,
             )
@@ -117,8 +117,8 @@ class JobManager:
             connexion.execute(
                 """
                 UPDATE jobs SET type=:type, statut=:statut, dataset_hash=:dataset_hash,
-                    transaction_hash=:transaction_hash, cree_le=:cree_le,
-                    mis_a_jour_le=:mis_a_jour_le, donnees_json=:donnees_json
+                    transaction_hash=:transaction_hash, dataset_id_onchain=:dataset_id_onchain,
+                    cree_le=:cree_le, mis_a_jour_le=:mis_a_jour_le, donnees_json=:donnees_json
                 WHERE job_id=:job_id
                 """,
                 ligne,
@@ -161,6 +161,54 @@ class JobManager:
             if job.statut in (StatutJob.EN_ATTENTE, StatutJob.EN_COURS):
                 return "en_cours", job
         return "nouvelle_tentative", None
+
+    # --- Relation dataset_id ↔ jobs qualité/insights (Milestone #4.1) ---
+
+    def resoudre_jobs_lies(self, dataset_hash: str) -> tuple:
+        """
+        Retrouve, pour un dataset_hash donné, le job qualité et le job insights
+        "termine" les plus récents partageant ce hash — à appeler une seule fois,
+        au moment où le job de certification correspondant passe "termine"
+        (voir routes/certifications.py), pour figer durablement l'association
+        plutôt que de la recalculer à chaque lecture de GET /api/v1/datasets/{id}.
+
+        Retourne (job_qualite_id, job_insights_id), chacun pouvant être None si
+        aucun job de ce type n'a été trouvé pour ce hash (ex. certification faite
+        sans étape qualité préalable — cas légitime, pas une erreur).
+        """
+
+        def _plus_recent_termine(type_job: TypeJob) -> Optional[str]:
+            with self._connexion() as connexion:
+                ligne = connexion.execute(
+                    """
+                    SELECT job_id FROM jobs
+                    WHERE dataset_hash = ? AND type = ? AND statut = ?
+                    ORDER BY cree_le DESC LIMIT 1
+                    """,
+                    (dataset_hash, type_job.value, StatutJob.TERMINE.value),
+                ).fetchone()
+            return ligne["job_id"] if ligne else None
+
+        return (
+            _plus_recent_termine(TypeJob.RAPPORT_QUALITE),
+            _plus_recent_termine(TypeJob.RAPPORT_INTELLIGENCE),
+        )
+
+    def trouver_job_certification_par_dataset_id(self, dataset_id: int) -> Optional[Job]:
+        """
+        Retrouve le job de certification associé à un dataset_id on-chain, via la
+        colonne dénormalisée indexée dataset_id_onchain (renseignée par
+        resoudre_jobs_lies() + mettre_a_jour_job() au moment où la certification
+        aboutit). Retourne None si aucun job de certification n'a cette valeur —
+        peut arriver pour un dataset certifié avant l'introduction de cette
+        fonctionnalité (Milestone #4.1), ou par un autre moyen que cette API.
+        """
+        with self._connexion() as connexion:
+            ligne = connexion.execute(
+                "SELECT * FROM jobs WHERE dataset_id_onchain = ? AND type = ? LIMIT 1",
+                (dataset_id, TypeJob.CERTIFICATION.value),
+            ).fetchone()
+        return ligne_vers_job(ligne) if ligne else None
 
     # --- Réconciliation au démarrage (ADR-10) ---
 
